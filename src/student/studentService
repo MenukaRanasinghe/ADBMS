@@ -1,0 +1,47 @@
+var studentModel = require('./studentModel');
+var key = '123456789trytryrtyr';
+var encryptor = require('simple-encryptor')(key);
+
+module.exports.createStudentDBService = async (studentDetails) => {
+  try {
+    var studentModelData = new studentModel();
+
+    studentModelData.firstname = studentDetails.firstname;
+    studentModelData.lastname = studentDetails.lastname;
+    studentModelData.username = studentDetails.username;
+    var encrypted = encryptor.encrypt(studentDetails.password);
+    studentModelData.password = encrypted;
+
+    await studentModelData.save(); // Use await to work with the Promise returned by save()
+
+    return true;
+  } catch (error) {
+    console.log(error);
+    return false;
+  }
+};
+
+module.exports.loginStudentDBService = async (studentDetails) => {
+    try {
+      const result = await studentModel.findOne({ username: studentDetails.username });
+  
+      if (!result) {
+        //return Promise.reject({ status: false, msg: "Student Error Details" });
+        throw {status:false, msg:"Student Error Details"};
+      }
+  
+      const decrypted = encryptor.decrypt(result.password);
+  
+      if (decrypted === studentDetails.password) {
+        return { status: true, msg: "Student Validated Successfully" };
+      } else {
+        return { status: false, msg: "Student Validated Failed" };
+      }
+    } catch (error) {
+      console.log(error);
+      throw {status:false,msg:"Invalid Data"};
+      //return Promise.reject({ status: false, msg: "Invalid Data" });
+    }
+  };
+  
+  
