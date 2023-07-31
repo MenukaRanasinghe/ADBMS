@@ -1,5 +1,11 @@
 var studentService=require('./studentService');
 
+var getDataConntrollerfn = async (req, res) =>
+{
+    var student = await studentService.getDataFromDBService();
+    res.send({ "status": true, "data": student });
+}
+
 var createStudentControllerFn=async(req,res)=>
 {
     try{
@@ -34,5 +40,29 @@ var loginStudentControllerFn = async (req, res) => {
     }
   };
 
+  var updateStudentController = async (req, res) => 
+{
+    console.log(req.params.id);
+    console.log(req.body);
+     
+    var result = await studentService.updateStudentDBService(req.params.id,req.body);
+     if (result) {
+        res.send({ "status": true, "message": "User Updateeeedddddd"} );
+     } else {
+         res.send({ "status": false, "message": "User Updateeeedddddd Faileddddddd" });
+     }
+}
 
-module.exports={ createStudentControllerFn, loginStudentControllerFn};
+var deleteStudentController = async (req, res) => 
+{
+     console.log(req.params.id);
+     var result = await studentService.removeStudentDBService(req.params.id);
+     if (result) {
+        res.send({ "status": true, "message": "User Deleteddd"} );
+     } else {
+         res.send({ "status": false, "message": "User Deleteddd Faileddddddd" });
+     }
+}
+
+
+module.exports={ createStudentControllerFn, loginStudentControllerFn,getDataConntrollerfn,updateStudentController,deleteStudentController};

@@ -1,47 +1,72 @@
-var studentModel = require('./studentModel');
-var key = '123456789trytryrtyr';
-var encryptor = require('simple-encryptor')(key);
+const studentModel = require('./studentModel');
+const key = '123456789trytryrtyr';
+const encryptor = require('simple-encryptor')(key);
 
 module.exports.createStudentDBService = async (studentDetails) => {
   try {
-    var studentModelData = new studentModel();
+    const encryptedPassword = encryptor.encrypt(studentDetails.password);
+    const studentModelData = new studentModel({
+      firstname: studentDetails.firstname,
+      lastname: studentDetails.lastname,
+      username: studentDetails.username,
+      password: encryptedPassword,
+    });
 
-    studentModelData.firstname = studentDetails.firstname;
-    studentModelData.lastname = studentDetails.lastname;
-    studentModelData.username = studentDetails.username;
-    var encrypted = encryptor.encrypt(studentDetails.password);
-    studentModelData.password = encrypted;
-
-    await studentModelData.save(); // Use await to work with the Promise returned by save()
-
+    await studentModelData.save();
     return true;
   } catch (error) {
-    console.log(error);
+    console.error(error);
     return false;
   }
 };
 
 module.exports.loginStudentDBService = async (studentDetails) => {
-    try {
-      const result = await studentModel.findOne({ username: studentDetails.username });
-  
-      if (!result) {
-        //return Promise.reject({ status: false, msg: "Student Error Details" });
-        throw {status:false, msg:"Student Error Details"};
-      }
-  
-      const decrypted = encryptor.decrypt(result.password);
-  
-      if (decrypted === studentDetails.password) {
-        return { status: true, msg: "Student Validated Successfully" };
-      } else {
-        return { status: false, msg: "Student Validated Failed" };
-      }
-    } catch (error) {
-      console.log(error);
-      throw {status:false,msg:"Invalid Data"};
-      //return Promise.reject({ status: false, msg: "Invalid Data" });
+  try {
+    const result = await studentModel.findOne({ username: studentDetails.username });
+
+    if (!result) {
+      throw { status: false, msg: "Student Error Details" };
     }
-  };
-  
-  
+
+    const decrypted = encryptor.decrypt(result.password);
+
+    if (decrypted === studentDetails.password) {
+      return { status: true, msg: "Student Validated Successfully" };
+    } else {
+      return { status: false, msg: "Student Validated Failed" };
+    }
+  } catch (error) {
+    console.error(error);
+    throw { status: false, msg: "Invalid Data" };
+  }
+};
+
+module.exports.getDataFromDBService = async () => {
+  try {
+    const result = await studentModel.find({});
+    return result;
+  } catch (error) {
+    console.error(error);
+    throw false;
+  }
+};
+
+module.exports.updateStudentDBService = async (id, studentDetails) => {
+  try {
+    const result = await studentModel.findByIdAndUpdate(id, studentDetails, { new: true });
+    return result;
+  } catch (error) {
+    console.error(error);
+    throw false;
+  }
+};
+
+module.exports.removeStudentDBService = async (id) => {
+  try {
+    const result = await studentModel.findByIdAndDelete(id);
+    return result;
+  } catch (error) {
+    console.error(error);
+    throw false;
+  }
+};
